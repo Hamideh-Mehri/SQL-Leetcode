@@ -79,3 +79,26 @@ select temp2.contest_id,
 Round(coalesce(cast(count(Register.user_id) as numeric) / cast(count(*) as numeric), 0), 4) * 100 as percentage
 from temp2 left join Register on temp2.user_id = Register.user_id and temp2.contest_id = Register.contest_id
 group by temp2.contest_id order by percentage DESC, contest_id
+
+
+-- second solution:
+WITH TotalUsers AS (
+    SELECT COUNT(DISTINCT user_id) AS total_users
+    FROM Users
+),
+ContestRegistrations AS (
+    SELECT contest_id, COUNT(DISTINCT user_id) AS registered_users
+    FROM Register
+    GROUP BY contest_id
+)
+SELECT 
+    cr.contest_id, 
+    ROUND((cr.registered_users / tu.total_users::numeric) * 100, 2) AS percentage
+FROM 
+    ContestRegistrations cr,
+    TotalUsers tu
+ORDER BY 
+    percentage DESC, 
+    contest_id ASC;
+
+
